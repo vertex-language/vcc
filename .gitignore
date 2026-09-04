@@ -1,0 +1,17 @@
+.DS_Store
+
+# The driver, built in place by `go build -o vcc.exe ./cmd/vcc` and by the
+# test runner. Windows names it .exe; every other host does not.
+vcc
+vcc.exe
+
+# Go leaves the previous binary beside the new one when it cannot replace a
+# running executable, which is every rebuild while a vcc process is alive.
+vcc.exe~
+vccstats.exe
+vccstats.exe~
+
+# A throwaway main built beside the compiler to profile it.
+.prof/
+
+*.exe
