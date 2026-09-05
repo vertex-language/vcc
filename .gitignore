@@ -2,14 +2,19 @@
 
 # The driver, built in place by `go build -o vcc.exe ./cmd/vcc` and by the
 # test runner. Windows names it .exe; every other host does not.
-vcc
-vcc.exe
+#
+# Anchored to the root on purpose. A pattern with no slash in it matches at
+# every depth, so a bare `vcc` also matched the directory cmd/vcc — which
+# ignored the command's own source, kept it out of the repository, and left
+# the test runner building a package that was not there.
+/vcc
+/vcc.exe
 
 # Go leaves the previous binary beside the new one when it cannot replace a
 # running executable, which is every rebuild while a vcc process is alive.
-vcc.exe~
-vccstats.exe
-vccstats.exe~
+/vcc.exe~
+/vccstats.exe
+/vccstats.exe~
 
 # A throwaway main built beside the compiler to profile it.
 .prof/
