@@ -14,7 +14,12 @@
 
 #include <stdio.h>
 
-#if defined(_MSC_VER) || defined(__VCC__)
+/* x86 as well as the dialect: half of what follows — __cpuid, __rdtsc, and
+ * the _mm_ fences — names instructions that exist on x86 and nowhere else,
+ * so this file cannot run on an ARM target however good <intrin.h> gets.
+ * The dialect alone is not the condition. */
+#if (defined(_MSC_VER) || defined(__VCC__)) && \
+    (defined(_M_X64) || defined(_M_IX86) || defined(__x86_64__) || defined(__i386__))
 
 #include <intrin.h>
 
@@ -214,7 +219,7 @@ int main(void) {
 #else
 
 int main(void) {
-    printf("Windows intrinsics OK (not a Microsoft-convention target)\n");
+    printf("Windows intrinsics OK (not a Microsoft-convention x86 target)\n");
     return 0;
 }
 

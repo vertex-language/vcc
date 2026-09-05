@@ -196,10 +196,18 @@ static int test_multi_declspec(void) {
     return 0;
 }
 
-/* 3.4 — Nested anonymous struct/union (LARGE_INTEGER pattern) */
+/* 3.4 — Nested anonymous struct/union (LARGE_INTEGER pattern)
+ *
+ * Windows writes this with DWORD and LONG, which are unsigned long and long
+ * there because Windows is LLP64 and those are thirty-two bits. Spelled that
+ * way here it would stop being a test of anonymous members and become a test
+ * of how wide long is: on LP64 the two halves are sixty-four bits each, the
+ * union is sixteen bytes, and LowPart is the whole value rather than half of
+ * it. int is thirty-two bits on both, so the split is the one the pattern is
+ * about wherever this runs. */
 typedef union {
-    struct { unsigned long LowPart; long HighPart; };
-    struct { unsigned long LowPart; long HighPart; } u;
+    struct { unsigned int LowPart; int HighPart; };
+    struct { unsigned int LowPart; int HighPart; } u;
     long long QuadPart;
 } LARGE_INTEGER_LIKE;
 static int test_anon_nested(void) {
@@ -262,15 +270,22 @@ static int test_bitfield_use(void) {
     return 0;
 }
 
-/* 3.9 — __forceinline */
-__forceinline int force_inlined(int x) { return x * x; }
+/* 3.9 — __forceinline
+ *
+ * static, because what is under test here is that the spelling is accepted
+ * and the function works. Without it this is an inline definition that
+ * provides no external definition, and calling it is a link error in
+ * standard C — which is what clang and gcc give at -O0, and what vcc gives
+ * too. §6.7.4's linkage rules are tests/decl/inline.c's subject; this
+ * file's is the dialect. */
+static __forceinline int force_inlined(int x) { return x * x; }
 static int test_forceinline(void) {
     if (force_inlined(7) != 49) return 1;
     return 0;
 }
 
-/* 3.10 — __inline (legacy spelling) */
-__inline int legacy_inline(int x) { return x + x; }
+/* 3.10 — __inline (legacy spelling), static for the reason above. */
+static __inline int legacy_inline(int x) { return x + x; }
 static int test_inline_legacy(void) {
     if (legacy_inline(11) != 22) return 1;
     return 0;

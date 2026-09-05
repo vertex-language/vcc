@@ -49,11 +49,21 @@ int main(void) {
     }
 
     /* jmp_buf is the one that matters, and setjmp through a call is where
-     * an unaligned one shows. */
+     * an unaligned one shows.
+     *
+     * How much alignment it asks for is the platform's to say, and they do
+     * not agree: MSVC's <setjmp.h> declares the halves __declspec(align(16))
+     * for the reason at the top of this file, while Darwin's jmp_buf is a
+     * plain int array and asks for four. So the universal property is
+     * checked everywhere — the buffer is placed as aligned as its own type
+     * says it needs — and the sixteen is checked where the header is the one
+     * asking for it. */
     {
         jmp_buf b;
+        if ((size_t)(char *)b % _Alignof(jmp_buf) != 0) return 13;
+#ifdef _WIN32
         if (_Alignof(jmp_buf) < 16) return 12;
-        if ((size_t)(char *)b % 16 != 0) return 13;
+#endif
     }
 
     printf("Alignment OK\n");
