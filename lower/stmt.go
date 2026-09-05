@@ -105,12 +105,12 @@ func (u *unit) stmt(s ast.Stmt) {
 	case *ast.SEHTryStmt:
 		// Emulate a standard block for now, avoiding PE exception handling.
 		u.stmt(s.Body)
-		
+
 		// The handler block needs to be emitted to resolve any nested labels,
 		// but shouldn't execute in a success path.
 		resume := u.fn.fn.Block(u.uniq("seh_resume"))
 		handler := u.fn.fn.Block(u.uniq("seh_handler"))
-		
+
 		u.blk().Br(resume.To())
 		u.enter(handler)
 		if s.Filter != nil {
@@ -122,7 +122,7 @@ func (u *unit) stmt(s ast.Stmt) {
 
 	case *ast.SEHLeaveStmt:
 		// Not implemented fully, just a break.
-		
+
 	case *ast.IfStmt:
 		u.ifStmt(s)
 

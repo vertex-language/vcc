@@ -268,25 +268,25 @@ type FieldDesignator struct {
 	Name *Ident
 }
 
-func (*BadExpr) exprNode()     {}
-func (*BasicLit) exprNode()    {}
-func (*StringLit) exprNode()   {}
-func (*ParenExpr) exprNode()   {}
-func (*GenericExpr) exprNode() {}
-func (*IndexExpr) exprNode()   {}
-func (*CallExpr) exprNode()    {}
-func (*SelectorExpr) exprNode(){}
-func (*IncDecExpr) exprNode()  {}
-func (*CompoundLit) exprNode() {}
-func (*UnaryExpr) exprNode()   {}
-func (*SizeofExpr) exprNode()  {}
-func (*AlignofExpr) exprNode() {}
-func (*CastExpr) exprNode()    {}
-func (*BinaryExpr) exprNode()  {}
-func (*CondExpr) exprNode()    {}
-func (*AssignExpr) exprNode()  {}
-func (*InitList) exprNode()    {}
-func (*StmtExpr) exprNode()   {}
+func (*BadExpr) exprNode()       {}
+func (*BasicLit) exprNode()      {}
+func (*StringLit) exprNode()     {}
+func (*ParenExpr) exprNode()     {}
+func (*GenericExpr) exprNode()   {}
+func (*IndexExpr) exprNode()     {}
+func (*CallExpr) exprNode()      {}
+func (*SelectorExpr) exprNode()  {}
+func (*IncDecExpr) exprNode()    {}
+func (*CompoundLit) exprNode()   {}
+func (*UnaryExpr) exprNode()     {}
+func (*SizeofExpr) exprNode()    {}
+func (*AlignofExpr) exprNode()   {}
+func (*CastExpr) exprNode()      {}
+func (*BinaryExpr) exprNode()    {}
+func (*CondExpr) exprNode()      {}
+func (*AssignExpr) exprNode()    {}
+func (*InitList) exprNode()      {}
+func (*StmtExpr) exprNode()      {}
 func (*LabelAddrExpr) exprNode() {}
 func (*OffsetofExpr) exprNode()  {}
 func (*VaArgExpr) exprNode()     {}

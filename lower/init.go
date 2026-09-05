@@ -282,7 +282,7 @@ func (u *unit) staticInit(t types.Type, init ast.Expr) ir.Init {
 	if init == nil {
 		return ir.ZeroInit
 	}
-	
+
 	// §6.7.9p14: A character array initialized by a string literal, optionally enclosed in braces.
 	if list, isList := init.(*ast.InitList); isList && len(list.Items) == 1 && len(list.Items[0].Designators) == 0 {
 		if a, isArr := asArray(t); isArr && types.IsInteger(a.Elem) {
@@ -624,7 +624,7 @@ func (u *unit) inferArrayLen(elem types.Type, init ast.Expr) int64 {
 			isList = false
 		}
 	}
-	
+
 	if !isList {
 		if s, ok := stripParens(init).(*ast.StringLit); ok {
 			if st, ok := asArray(u.stringType(s)); ok {

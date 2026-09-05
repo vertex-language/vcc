@@ -39,9 +39,9 @@ const (
 
 	QUO  // /
 	REM  // %
-	SHL  // 
+	SHL  //
 	SHR  // >>
-	LSS  // 
+	LSS  //
 	GTR  // >
 	LEQ  // <=
 	GEQ  // >=

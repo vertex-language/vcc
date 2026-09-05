@@ -891,7 +891,7 @@ func (c *checker) checkStmt(s ast.Stmt, pushScope bool) {
 
 	case *ast.SEHLeaveStmt:
 		// Allowed inside __try blocks.
-		
+
 	case *ast.AsmStmt:
 		c.checkAsm(s)
 

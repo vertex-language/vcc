@@ -81,12 +81,12 @@ func (*ParenDeclarator) declaratorNode() {}
 func (*ArrayDeclarator) declaratorNode() {}
 func (*FuncDeclarator) declaratorNode()  {}
 
-func (d *BadDeclarator) DeclName() *Ident  { return nil }
-func (d *NameDeclarator) DeclName() *Ident { return d.Ident }
-func (d *PtrDeclarator) DeclName() *Ident  { return declName(d.Inner) }
-func (d *ParenDeclarator) DeclName() *Ident{ return declName(d.Inner) }
-func (d *ArrayDeclarator) DeclName() *Ident{ return declName(d.Inner) }
-func (d *FuncDeclarator) DeclName() *Ident { return declName(d.Inner) }
+func (d *BadDeclarator) DeclName() *Ident   { return nil }
+func (d *NameDeclarator) DeclName() *Ident  { return d.Ident }
+func (d *PtrDeclarator) DeclName() *Ident   { return declName(d.Inner) }
+func (d *ParenDeclarator) DeclName() *Ident { return declName(d.Inner) }
+func (d *ArrayDeclarator) DeclName() *Ident { return declName(d.Inner) }
+func (d *FuncDeclarator) DeclName() *Ident  { return declName(d.Inner) }
 
 func declName(d Declarator) *Ident {
 	if d == nil {

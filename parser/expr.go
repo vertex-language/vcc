@@ -312,6 +312,7 @@ func (p *parser) parseGeneric(lo token.Pos) ast.Expr {
 	g.Span = p.span(lo)
 	return g
 }
+
 // parseOffsetof reads __builtin_offsetof(type-name, member-designator).
 //
 // Neither argument is an expression: the first is a type name and the second

@@ -3,8 +3,8 @@ package preprocessor
 // cond is one frame of the #if stack.
 type cond struct {
 	site      Site
-	taken     bool   // some group in this chain has been taken
-	active    bool   // this group is the one being processed
+	taken     bool // some group in this chain has been taken
+	active    bool // this group is the one being processed
 	sawElse   bool
 	directive string // for the diagnostic on an unterminated chain
 	guard     string // controlling macro of a candidate include guard

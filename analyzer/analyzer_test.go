@@ -45,8 +45,8 @@ func TestDecodeIntTypes(t *testing.T) {
 	silent := func(string) {}
 	for text, want := range map[string]types.Kind{
 		"1":          types.Int,
-		"2147483648": types.Long,  // decimal: skips uint (signed only)
-		"0x80000000": types.UInt,  // hex: unsigned steps allowed
+		"2147483648": types.Long, // decimal: skips uint (signed only)
+		"0x80000000": types.UInt, // hex: unsigned steps allowed
 		"1u":         types.UInt,
 		"1l":         types.Long,
 		"0x1Fu":      types.UInt,
@@ -195,8 +195,8 @@ func TestKRMatching(t *testing.T) {
 
 func TestIncompleteObjects(t *testing.T) {
 	wantErrs(t, "struct S; struct S s;", "incomplete type")
-	wantErrs(t, "struct S; extern struct S s;")     // extern: deferred
-	wantErrs(t, "int a[] = { 1, 2, 3 };")           // completed by init (arity later)
+	wantErrs(t, "struct S; extern struct S s;") // extern: deferred
+	wantErrs(t, "int a[] = { 1, 2, 3 };")       // completed by init (arity later)
 	wantErrs(t, "void v;", "incomplete type")
 	wantErrs(t, "typedef int T; T x = 3;")
 }

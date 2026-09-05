@@ -37,7 +37,7 @@ func (u *unit) restoreStack(m stackMark) {
 }
 
 // recordVLAExprs links a VLA type to its dimension expression.
-// C parses declarators inside-out, meaning the outermost array in the AST 
+// C parses declarators inside-out, meaning the outermost array in the AST
 // corresponds to the outermost array layer in the C type.
 func (u *unit) recordVLAExprs(t types.Type, at ast.Node) {
 	var decl ast.Declarator
@@ -73,8 +73,12 @@ func (u *unit) recordVLAExprs(t types.Type, at ast.Node) {
 			// Extract the length expression dynamically.
 			var expr ast.Expr
 			ast.Inspect(x, func(n ast.Node) bool {
-				if n == x { return true }
-				if _, isDecl := n.(ast.Declarator); isDecl { return false } // Do not descend into Inner
+				if n == x {
+					return true
+				}
+				if _, isDecl := n.(ast.Declarator); isDecl {
+					return false
+				} // Do not descend into Inner
 				if e, isExpr := n.(ast.Expr); isExpr && expr == nil {
 					expr = e
 				}
@@ -106,7 +110,7 @@ func (u *unit) recordVLAExprs(t types.Type, at ast.Node) {
 	if exprIdx < 0 {
 		exprIdx = 0
 	}
-	
+
 	var walkType func(ty types.Type)
 	walkType = func(ty types.Type) {
 		ty = types.Unqualify(ty)
@@ -159,10 +163,10 @@ func (u *unit) declareVLA(name string, t types.Type, at ast.Node) {
 		u.errorf(at, "[*] may only appear in a function prototype (§6.7.6.2p4)")
 		return
 	}
-	
+
 	// FIX: Populate the missing VLA dimension expressions map before evaluating!
 	u.recordVLAExprs(t, at)
-	
+
 	n := u.vlaCount(t, at)
 	if n.IsZero() {
 		return

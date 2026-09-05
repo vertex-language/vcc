@@ -542,8 +542,8 @@ func (s *scanner) report(sev token.Severity, lo, hi int, msg string) {
 	})
 }
 
-func isDigit(c byte) bool  { return '0' <= c && c <= '9' }
-func isLetter(c byte) bool { return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' }
+func isDigit(c byte) bool    { return '0' <= c && c <= '9' }
+func isLetter(c byte) bool   { return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' }
 func isBinDigit(c byte) bool { return c == '0' || c == '1' }
 
 func isHexDigit(c byte) bool {

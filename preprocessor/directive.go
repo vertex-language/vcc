@@ -12,11 +12,11 @@ import (
 // C23 standardized it (WG14 N2686), so it is a version gap, not a dialect,
 // and it is handled in the directive switch.
 var gnuDirectives = map[string]string{
-	"assert":       "removed from GNU C itself; no ISO equivalent",
-	"unassert":     "removed from GNU C itself; no ISO equivalent",
-	"ident":        "no ISO equivalent",
-	"sccs":         "no ISO equivalent",
-	"import":       "no ISO equivalent; write an include guard",
+	"assert":   "removed from GNU C itself; no ISO equivalent",
+	"unassert": "removed from GNU C itself; no ISO equivalent",
+	"ident":    "no ISO equivalent",
+	"sccs":     "no ISO equivalent",
+	"import":   "no ISO equivalent; write an include guard",
 }
 
 // directive processes one directive line. The '#' has been consumed; line

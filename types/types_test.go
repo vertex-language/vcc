@@ -128,11 +128,11 @@ func TestParamAdjustment(t *testing.T) {
 
 func TestDerivationErrors(t *testing.T) {
 	for src, want := range map[string]int{
-		"int f(void)[3];":     1, // function returning array
+		"int f(void)[3];":        1, // function returning array
 		"typedef int T; void x;": 0, // parsed; 'void x' completeness is the analyzer's
-		"int a[3](void);":     1, // array of functions
-		"int a[0];":           0, // gcc's zero-length array, which headers use
-		"int a[static 3];":    1, // static outside a parameter
+		"int a[3](void);":        1, // array of functions
+		"int a[0];":              0, // gcc's zero-length array, which headers use
+		"int a[static 3];":       1, // static outside a parameter
 	} {
 		_, r := build(t, src)
 		if len(r.reports) != want {

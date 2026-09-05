@@ -95,6 +95,7 @@ func (u *unit) stringKey(sv analyzer.StringValue) string {
 	}
 	return b.String()
 }
+
 // bindFuncName gives the body §6.4.2.2's __func__, and gcc's two spellings of
 // it, as an object rather than as a macro: the standard says "as if the
 // declaration `static const char __func__[] = "function-name";` appeared",

@@ -172,7 +172,7 @@ func TestFdump(t *testing.T) {
 }
 
 func TestStringLitSegments(t *testing.T) {
-	f := token.NewFile("a.c", []byte(`u8"a" "b"` + "\n"))
+	f := token.NewFile("a.c", []byte(`u8"a" "b"`+"\n"))
 	s := &StringLit{
 		Span: Span{f.Pos(0), f.Pos(9)},
 		Segs: []Span{{f.Pos(0), f.Pos(5)}, {f.Pos(6), f.Pos(9)}},

@@ -263,7 +263,7 @@ func msvcSizedSuffix(t []byte) bool {
 }
 
 // scanChar scans a character constant; s.off is at the opening quote,
-// start covers any prefix. '' is reported (at least one CChar
+// start covers any prefix. ” is reported (at least one CChar
 // required); the multi-character 'ab' scans clean — its value is a
 // decoding concern. Unterminated is a formation error and reports in
 // every mode; emptiness is a value error and defers under ScanPP.
@@ -348,6 +348,7 @@ func (s *scanner) scanEscape() {
 		s.valueErr(start, s.off, fmt.Sprintf("unknown escape sequence '\\%c'", c))
 	}
 }
+
 // dots counts the '.' characters in a numeric run.
 func dots(t []byte) int {
 	n := 0

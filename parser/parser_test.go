@@ -101,7 +101,6 @@ func TestOneDiagnosticNeverACascade(t *testing.T) {
 	}
 }
 
-
 func TestSkipBodies(t *testing.T) {
 	_, f, diags := parse(t, "void f(void) { int x = {; }; } typedef int T; T t;", SkipBodies)
 	mustClean(t, diags) // garbage inside the skipped body never parses
@@ -341,6 +340,7 @@ func TestEmptyDecl(t *testing.T) {
 		t.Fatalf("second decl is %T, want EmptyDecl", f2.Decls[1])
 	}
 }
+
 // A diagnostic sited at EOF must stay inside the file. EOF's Pos is the
 // file's one-past-the-end position, and the widening that gives a
 // zero-width token a column to underline has nowhere to go there: a span

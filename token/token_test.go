@@ -97,7 +97,6 @@ func TestTrigraphSplice(t *testing.T) {
 	}
 }
 
-
 func TestBetween(t *testing.T) {
 	f := NewFile("a.c", []byte("a \\\n b;\n"))
 	// tokens: 'a' at [0,1), 'b' at [2,3) in translated text "a  b;\n"
@@ -123,6 +122,7 @@ func TestSortDiagnostics(t *testing.T) {
 		}
 	}
 }
+
 // An extension spelling of a keyword resolves to that keyword, which is what
 // makes it the same operator rather than a name to be discarded.
 func TestKeywordAliases(t *testing.T) {

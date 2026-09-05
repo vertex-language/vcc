@@ -12,11 +12,13 @@ type SEHTryStmt struct {
 	Finally token.Pos
 	Span
 }
-func (s *SEHTryStmt) stmtNode()      {}
+
+func (s *SEHTryStmt) stmtNode() {}
 
 type SEHLeaveStmt struct {
 	Leave token.Pos
 	Semi  token.Pos
 	Span
 }
-func (s *SEHLeaveStmt) stmtNode()      {}
+
+func (s *SEHLeaveStmt) stmtNode() {}

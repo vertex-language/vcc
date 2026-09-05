@@ -225,7 +225,7 @@ var kwOrder = map[string]int{
 	"unsigned": 0, "signed": 1, "long": 2, "short": 3, "char": 4,
 	"int": 5, "float": 6, "double": 7, "void": 8, "_Bool": 9, "_Complex": 10,
 	"__int128": 11,
-	"__int64": 12, "__int32": 13, "__int16": 14, "__int8": 15,
+	"__int64":  12, "__int32": 13, "__int16": 14, "__int8": 15,
 }
 
 var multisets = map[string]Kind{

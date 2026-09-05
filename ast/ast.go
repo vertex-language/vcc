@@ -83,8 +83,8 @@ type Releaser interface {
 // File is one translation unit's tree.
 type File struct {
 	Span
-	Unit  *token.File   // the position space every span resolves through
-	Decls []Decl        // external declarations: FuncDecl or Decl
+	Unit     *token.File   // the position space every span resolves through
+	Decls    []Decl        // external declarations: FuncDecl or Decl
 	Comments []token.Token // retained under parser.ParseComments
 
 	rel Releaser

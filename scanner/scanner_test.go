@@ -399,6 +399,7 @@ func TestScanPPLineStructure(t *testing.T) {
 		t.Errorf("%d line-opening tokens, want 2 (the '#', and the 'int' after the directive)", nl)
 	}
 }
+
 // The last alternative of §6.4p1's pp-token grammar — "each non-white-space
 // character that cannot be one of the above" — is a preprocessing token like
 // any other. A backslash outside a UCN is one, and so is an @.
