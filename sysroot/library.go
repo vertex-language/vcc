@@ -99,8 +99,13 @@ func defaultLibraries(h Host, goos, target string, hosted bool) []string {
 	if !hosted {
 		return nil
 	}
-	switch goos {
-	case "windows":
+	// Which runtime a program needs is a fact about the target and not
+	// about the machine doing the linking. Asking the host as well is
+	// what made a Windows program cross-linked from a Mac come out with
+	// no C runtime at all — which is the one thing vcc exists not to
+	// need a host toolchain for.
+	switch {
+	case targetIsWindows(target):
 		// The static CRT, which is cl.exe's own default and the one that
 		// needs nothing installed to run: ucrtbase.dll ships with Windows
 		// but vcruntime140.dll does not, so a link against the DLL runtime
@@ -111,9 +116,6 @@ func defaultLibraries(h Host, goos, target string, hosted bool) []string {
 		// reverse of Unix's — foo.lib is the import library and libfoo.lib
 		// the static one — so spelling the static form outright is the only
 		// way to say which is meant without leaning on the search order.
-		if !targetIsWindows(target) {
-			return nil
-		}
 		// oldnames is where open, read, write, close, strdup and the rest
 		// of the names the ucrt spells with a leading underscore are also
 		// spelled without one. The header declares them as real functions
