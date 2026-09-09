@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vertex-language/vcc/analyzer"
 	"github.com/vertex-language/vcc/preprocessor"
 	"github.com/vertex-language/vcc/sysroot"
 )
@@ -197,6 +198,14 @@ func (c *Compiler) config() (preprocessor.Config, []string, error) {
 		// The target's model macros come first, then the caller's, in order —
 		// so -U can remove a model macro and -D can shadow one.
 		cfg.Predefines = append(t.Predefines(), c.Defines...)
+
+		// What __is_target_* and __has_builtin answer from. Both are facts
+		// this package holds and phase 4 does not: the triple because
+		// preprocessor does not import the target model, and the builtin
+		// test because what counts as a builtin is decided where builtins
+		// are declared.
+		cfg.Triple = t.Triple()
+		cfg.Builtin = analyzer.IsCompilerBuiltin
 
 		for _, dir := range c.IncludeDirs {
 			cfg.Search = append(cfg.Search, preprocessor.Mount{Name: dir, FS: os.DirFS(dir)})

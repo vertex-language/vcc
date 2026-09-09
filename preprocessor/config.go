@@ -54,6 +54,21 @@ type Mount struct {
 	System bool
 }
 
+// A Triple is a target named the way a target triple names one:
+// arch-vendor-os-environment. It is what __is_target_arch and its three
+// neighbours compare against.
+//
+// Every component is optional and an empty one matches nothing, which is the
+// honest answer where the target model has no opinion: a Linux target has no
+// vendor worth naming, and no macOS target has an environment unless it is
+// Catalyst or a simulator.
+type Triple struct {
+	Arch        string
+	Vendor      string
+	OS          string
+	Environment string
+}
+
 // PredefineKind distinguishes the two command-line operations.
 type PredefineKind uint8
 
@@ -103,6 +118,27 @@ type Config struct {
 
 	// Predefines are applied in order before the primary source file is read.
 	Predefines []Predefine
+
+	// Triple is what the __is_target_* operators answer from: the target
+	// this translation unit is being compiled for, in the four components
+	// clang's operators ask about.
+	//
+	// It arrives as strings for the same reason Predefines do. The target
+	// model lives in the vcc package and preprocessor does not import it;
+	// what phase 4 needs is not a Target but four words, and asking for the
+	// four keeps the dependency pointing one way.
+	Triple Triple
+
+	// Builtin reports whether a name is a compiler builtin this compilation
+	// would accept, and is what __has_builtin answers for anything that is
+	// not one of the preprocessor's own operators.
+	//
+	// A function rather than a list because the answer is not phase 4's to
+	// give: what counts as a builtin is decided where builtins are declared
+	// and lowered, and a copy of that rule here would be a second rule.
+	// Nil answers no, which is the right answer for a caller that has not
+	// said -- a program is entitled to be told no and use the fallback.
+	Builtin func(name string) bool
 
 	// PreIncludes are processed before the main input, in order, exactly as
 	// if #include'd at the top of it. This is --include / -include / /FI.

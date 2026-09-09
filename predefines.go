@@ -32,9 +32,18 @@ import (
 // osIdent: what the OS half of a target name predefines. Darwin does
 // not define __unix__ (matching clang there), and __ELF__ belongs to
 // every ELF platform including bare metal.
+//
+// __APPLE_CC__ is the same claim __GNUC__ makes, said where Apple's
+// headers listen for it. TargetConditionals.h reads
+// `__GNUC__ && (__APPLE_CPP__ || __APPLE_CC__ || __MACOS_CLASSIC__)` as
+// "a gcc-family compiler on Apple" and errors outright on a compiler that
+// is neither that nor Metrowerks -- so without it <objc/objc.h>,
+// <AvailabilityMacros.h> and everything reached through them fail on
+// #error rather than on anything about the code. The value is the one
+// clang reports.
 var osIdent = map[string][][2]string{
 	"linux":   {{"__linux__", "1"}, {"__gnu_linux__", "1"}, {"__unix__", "1"}, {"__ELF__", "1"}},
-	"macos":   {{"__APPLE__", "1"}, {"__MACH__", "1"}},
+	"macos":   {{"__APPLE__", "1"}, {"__MACH__", "1"}, {"__APPLE_CC__", "6000"}},
 	"elf":     {{"__ELF__", "1"}},
 	"windows": {{"_WIN32", "1"}},
 }
@@ -60,6 +69,31 @@ var archIdent = map[string][][2]string{
 // Without these the system headers do not compile: <stdio.h> on Darwin needs
 // __LP64__, __arm64__ and __SIZE_TYPE__, and one of them wrong is a struct of
 // the wrong shape rather than an error message.
+// Triple is the target named the way a target triple names one, which is
+// what the __is_target_* operators compare against.
+//
+// vcc's own target names are two words -- aarch64-macos -- because two is
+// what selecting a backend needs. A triple has four, and the other two are
+// facts this table knows rather than guesses: Apple is the vendor of every
+// Darwin target, and no target vcc models is in a Catalyst or simulator
+// environment, so the environment is empty and every question about one is
+// answered no.
+func (t Target) Triple() preprocessor.Triple {
+	arch, osname := SplitTarget(t.name)
+	tr := preprocessor.Triple{Arch: arch, OS: osname}
+	switch osname {
+	case "macos":
+		tr.Vendor = "apple"
+	case "linux":
+		tr.Vendor = "unknown"
+		tr.Environment = "gnu"
+	case "windows":
+		tr.Vendor = "pc"
+		tr.Environment = "msvc"
+	}
+	return tr
+}
+
 func (t Target) Predefines() []preprocessor.Predefine {
 	m := t.model
 	var ds []preprocessor.Predefine

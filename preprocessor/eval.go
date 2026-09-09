@@ -55,9 +55,10 @@ func (p *Preprocessor) Eval(r *reader, line []Token, at Site) bool {
 		return false
 	}
 	line = p.resolveDefined(line, at)
-	line = p.resolveHasInclude(r, line, at)
+	line = p.resolveOperators(r, line, at)
 	line = p.expandClosed(line)
 	line = p.resolveExpandedDefined(line, at)
+	line = p.resolveExpandedOperators(r, line, at)
 	line = p.zeroIdents(line)
 
 	e := &evaluator{p: p, toks: line, site: at}
