@@ -64,6 +64,8 @@ Flags for build and run:
     -o file         write output here ("-" is standard output, for i and vir)
     -L dir          add a library search directory (repeatable, in order)
     -l name         link against a library (repeatable, in order)
+    -F dir          add a framework search directory (repeatable, in order)
+    -framework name link against a framework (repeatable, in order)
     -entry sym      the program's entry symbol (default: the platform's)
     -static         link a static image
 

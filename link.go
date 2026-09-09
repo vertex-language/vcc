@@ -42,6 +42,12 @@ type linkParams struct {
 	LibDirs []string
 	Libs    []string
 
+	// Frameworks and FrameworkDirs are -framework and -F. Darwin only: a
+	// framework is a directory holding a library under its own name, which
+	// no -l spelling reaches, and no other platform has one.
+	Frameworks    []string
+	FrameworkDirs []string
+
 	// Host is how the Mach-O link finds the platform SDK. Nil is the real
 	// machine.
 	Host sysroot.Host
@@ -54,6 +60,15 @@ func link(t Target, p linkParams) error {
 	}
 	if p.Output == "" {
 		return fmt.Errorf("link needs an output path")
+	}
+	// A framework is Apple's, and a target that has none cannot be given
+	// one. Checked here rather than in the Mach-O path because the other
+	// two would otherwise ignore -framework silently -- and link without
+	// the symbols it would have supplied, or succeed because nothing
+	// referenced them.
+	if len(p.Frameworks) > 0 && t.format != FormatMachO {
+		return fmt.Errorf("cannot use -framework %s: %s has no frameworks",
+			p.Frameworks[0], t.Name())
 	}
 
 	switch t.format {
@@ -128,7 +143,16 @@ func linkMachO(t Target, p linkParams) error {
 	if err != nil {
 		return err
 	}
+	fws, err := p.frameworks(t)
+	if err != nil {
+		return err
+	}
 	if err := addObjects(l.AddFile, p.Objects); err != nil {
+		return err
+	}
+	// Frameworks before the -l list, so a framework's own re-exports are in
+	// hand before the C runtime is added at the end.
+	if err := addObjects(l.AddFile, fws); err != nil {
 		return err
 	}
 	if err := addObjects(l.AddFile, libs); err != nil {

@@ -134,6 +134,8 @@ type buildFlags struct {
 
 	libDirs stringList
 	libs    stringList
+	fwDirs  stringList
+	fws     stringList
 	entry   string
 	static  bool
 }
@@ -142,6 +144,8 @@ func (b *buildFlags) register(fs *flag.FlagSet) {
 	b.pp.register(fs)
 	fs.Var(&b.libDirs, "L", "add a library search directory (repeatable, in order)")
 	fs.Var(&b.libs, "l", "link against a library (repeatable, in order)")
+	fs.Var(&b.fwDirs, "F", "add a framework search directory (repeatable, in order)")
+	fs.Var(&b.fws, "framework", "link against a framework (repeatable, in order)")
 	fs.StringVar(&b.entry, "entry", "", "the program's entry symbol (default: the platform's)")
 	fs.BoolVar(&b.static, "static", false, "link a static image")
 }
@@ -149,11 +153,13 @@ func (b *buildFlags) register(fs *flag.FlagSet) {
 // params is the build the flags describe, over inputs in command-line order.
 func (b *buildFlags) params(inputs []vcc.Input, out string) vcc.BuildParams {
 	return vcc.BuildParams{
-		Output:  out,
-		Inputs:  inputs,
-		Libs:    b.libs,
-		LibDirs: b.libDirs,
-		Entry:   b.entry,
-		Static:  b.static,
+		Output:        out,
+		Inputs:        inputs,
+		Libs:          b.libs,
+		LibDirs:       b.libDirs,
+		Frameworks:    b.fws,
+		FrameworkDirs: b.fwDirs,
+		Entry:         b.entry,
+		Static:        b.static,
 	}
 }

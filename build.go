@@ -39,6 +39,14 @@ type BuildParams struct {
 	// this and is an Input like any other, linked exactly where it appears.
 	Libs    []string
 	LibDirs []string
+
+	// Frameworks and FrameworkDirs are -framework and -F, which are
+	// Darwin's. A framework is a directory holding its library under the
+	// framework's own name, so no -l spelling reaches one: -framework
+	// AppKit finds AppKit.framework/AppKit.tbd, and libAppKit.tbd has never
+	// existed.
+	Frameworks    []string
+	FrameworkDirs []string
 }
 
 // Build compiles every source input and links the results with everything
@@ -79,14 +87,16 @@ func (c *Compiler) Build(p BuildParams) error {
 	}
 
 	return link(t, linkParams{
-		Objects:      objs,
-		Output:       imageName(t, p.Output),
-		LibDirs:      p.LibDirs,
-		Libs:         p.Libs,
-		Entry:        p.Entry,
-		Static:       p.Static,
-		Freestanding: c.Freestanding,
-		Host:         c.Host,
+		Objects:       objs,
+		Output:        imageName(t, p.Output),
+		LibDirs:       p.LibDirs,
+		Libs:          p.Libs,
+		Frameworks:    p.Frameworks,
+		FrameworkDirs: p.FrameworkDirs,
+		Entry:         p.Entry,
+		Static:        p.Static,
+		Freestanding:  c.Freestanding,
+		Host:          c.Host,
 	})
 }
 

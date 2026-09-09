@@ -88,6 +88,62 @@ func findLibrary(t Target, name string, dirs []string, static bool) (Input, erro
 		name, orList(names), dirList(dirs))
 }
 
+// frameworks resolves every -framework name for one link, in order.
+//
+// A framework is a directory with the library inside it under the same
+// name, so the search is by shape rather than by filename: -framework
+// AppKit looks for AppKit.framework/AppKit.tbd and then the binary beside
+// it. That is why -l cannot spell one -- libAppKit.tbd does not exist and
+// never did.
+func (p linkParams) frameworks(t Target) ([]Input, error) {
+	if len(p.Frameworks) == 0 {
+		return nil, nil
+	}
+	dirs := p.frameworkDirs(t)
+	out := make([]Input, 0, len(p.Frameworks))
+	for _, name := range p.Frameworks {
+		fw, err := findFramework(name, dirs)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, fw)
+	}
+	return out, nil
+}
+
+// frameworkDirs is where a -framework name is looked for: the caller's -F
+// directories first, then the platform's.
+func (p linkParams) frameworkDirs(t Target) []string {
+	dirs := make([]string, 0, len(p.FrameworkDirs)+2)
+	dirs = append(dirs, p.FrameworkDirs...)
+	return append(dirs, sysroot.FrameworkDirs(p.Host, t.Name(), !p.Freestanding)...)
+}
+
+// findFramework finds one framework's link input.
+//
+// The .tbd first and the bare binary after it, which is the same preference
+// libraryNames states for a plain library and for the same reason: a modern
+// SDK ships the stub, and the binary it stands for is in the shared cache.
+func findFramework(name string, dirs []string) (Input, error) {
+	bases := []string{name + ".tbd", name}
+	for _, dir := range dirs {
+		for _, base := range bases {
+			path := filepath.Join(dir, name+".framework", base)
+			data, err := os.ReadFile(path)
+			switch {
+			case err == nil:
+				return Input{Name: path, Data: data}, nil
+			case os.IsNotExist(err):
+				continue
+			default:
+				return Input{}, fmt.Errorf("%s: %w", path, err)
+			}
+		}
+	}
+	return Input{}, fmt.Errorf("cannot find -framework %s: no %s.framework in %s",
+		name, name, dirList(dirs))
+}
+
 // libraries resolves every -l name for one link, in order: the ones the
 // caller named, then the platform's default C runtime.
 //

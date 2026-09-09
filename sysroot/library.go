@@ -22,6 +22,39 @@ func LibraryDirs(h Host, target string, hosted bool) []string {
 	return libraryDirs(h, runtime.GOOS, target, hosted)
 }
 
+// FrameworkDirs is where -framework looks, in order. Darwin only: a
+// framework is an Apple idea and no other platform has one.
+func FrameworkDirs(h Host, target string, hosted bool) []string {
+	if h == nil {
+		h = osHost{}
+	}
+	return frameworkDirs(h, runtime.GOOS, target, hosted)
+}
+
+// frameworkDirs is FrameworkDirs with the impurities injected.
+//
+// The SDK's copies rather than the running system's, for the reason
+// libraryDirs gives about /usr/lib: what a link reads is the .tbd stub the
+// SDK ships, and the framework binary itself lives in the shared cache.
+func frameworkDirs(h Host, goos, target string, hosted bool) []string {
+	if !hosted || goos != "darwin" || !targetIsDarwin(target) {
+		return nil
+	}
+	sdk, ok := darwinSDK(h)
+	if !ok {
+		return nil
+	}
+	return []string{
+		sdk + "/System/Library/Frameworks",
+		sdk + "/Library/Frameworks",
+	}
+}
+
+// targetIsDarwin reports whether a target name names a Mach-O platform.
+func targetIsDarwin(target string) bool {
+	return strings.HasSuffix(target, "-macos")
+}
+
 // libraryDirs is LibraryDirs with the impurities injected, as resolve is to
 // Resolve. Tests call this; nothing else should.
 func libraryDirs(h Host, goos, target string, hosted bool) []string {
