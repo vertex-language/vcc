@@ -65,12 +65,12 @@ func (p *Preprocessor) directive(r *reader, hash Token, line []Token) {
 	case "include_next":
 		p.doIncludeNext(r, rest, at)
 	case "if":
-		r.beginIf(p, "#if", at, func() bool { return p.Eval(rest, at) })
+		r.beginIf(p, "#if", at, func() bool { return p.Eval(r, rest, at) })
 		r.noteGuardIf(p, rest)
 	case "ifdef", "ifndef":
 		p.doIfdef(r, word == "ifndef", rest, at)
 	case "elif":
-		r.doElif(p, at, func() bool { return p.Eval(rest, at) })
+		r.doElif(p, at, func() bool { return p.Eval(r, rest, at) })
 	case "else":
 		r.doElse(p, at)
 		p.expectEnd(rest, "#else")
@@ -249,7 +249,9 @@ func (p *Preprocessor) doIfdef(r *reader, negate bool, line []Token, at Site) {
 		return
 	}
 	name := line[0].Text()
-	v := p.macros.Defined(name)
+	// An operator the preprocessor answers for itself is defined, the same
+	// as it is to `defined`. See hasinclude.go.
+	v := p.macros.Defined(name) || builtinPPMacro(name)
 	if negate {
 		v = !v
 	}

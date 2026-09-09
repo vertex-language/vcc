@@ -75,7 +75,7 @@ type cached struct {
 
 // doInclude implements §6.10.2.
 func (p *Preprocessor) doInclude(r *reader, line []Token, at Site) {
-	name, angled, ok := p.headerName(line, at)
+	name, angled, ok := p.headerName("#include", line, at)
 	if !ok {
 		return
 	}
@@ -96,7 +96,7 @@ func (p *Preprocessor) doInclude(r *reader, line []Token, at Site) {
 // There is no ISO spelling for that, and a header that uses it cannot be
 // rewritten by the person compiling it.
 func (p *Preprocessor) doIncludeNext(r *reader, line []Token, at Site) {
-	name, angled, ok := p.headerName(line, at)
+	name, angled, ok := p.headerName("#include_next", line, at)
 	if !ok {
 		return
 	}
@@ -115,15 +115,15 @@ func (p *Preprocessor) doIncludeNext(r *reader, line []Token, at Site) {
 // form is rebuilt from the raw bytes between '<' and '>', not from the token
 // spellings, because the characters between them are not tokens: <sys/types.h>
 // must survive with its slash and dot intact.
-func (p *Preprocessor) headerName(line []Token, at Site) (name string, angled, ok bool) {
+func (p *Preprocessor) headerName(what string, line []Token, at Site) (name string, angled, ok bool) {
 	if len(line) == 0 {
-		p.errorf(at, "#include expects \"FILENAME\" or <FILENAME>")
+		p.errorf(at, "%s expects \"FILENAME\" or <FILENAME>", what)
 		return "", false, false
 	}
 	switch {
 	case line[0].Kind == token.STRING_LIT && !strings.HasPrefix(line[0].Text(), "u") &&
 		!strings.HasPrefix(line[0].Text(), "L") && !strings.HasPrefix(line[0].Text(), "U"):
-		p.expectEnd(line[1:], "#include")
+		p.expectEnd(line[1:], what)
 		return strings.Trim(line[0].Text(), `"`), false, true
 
 	case line[0].Kind == token.LSS:
@@ -135,19 +135,19 @@ func (p *Preprocessor) headerName(line []Token, at Site) (name string, angled, o
 			if org == nil || org.File == nil {
 				break
 			}
-			p.expectEnd(line[i+1:], "#include")
+			p.expectEnd(line[i+1:], what)
 			return string(org.File.Slice(line[0].End, line[i].Pos)), true, true
 		}
-		p.errorf(at, "missing '>' in #include")
+		p.errorf(at, "missing '>' in %s", what)
 		return "", false, false
 	}
 
 	// Neither form: the line is a macro that expands to one. §6.10.2p4.
 	expanded := p.expandClosed(line)
 	if len(expanded) > 0 && !sameTokens(expanded, line) {
-		return p.headerName(expanded, at)
+		return p.headerName(what, expanded, at)
 	}
-	p.errorf(at, "#include expects \"FILENAME\" or <FILENAME>")
+	p.errorf(at, "%s expects \"FILENAME\" or <FILENAME>", what)
 	return "", false, false
 }
 
@@ -180,27 +180,9 @@ func (p *Preprocessor) include(r *reader, name string, angled bool, at Site, nex
 	// a header can reach the one it shadows. A file found outside the search
 	// list — the primary source — has no position in it, and the search runs
 	// from the top.
-	start := 0
-	if next {
-		for i := range p.cfg.Search {
-			if r.org.Mount == &p.cfg.Search[i] {
-				start = i + 1
-				break
-			}
-		}
-	}
+	start := p.searchStart(r, next)
 
-	var mounts []*Mount
-	var rels []string
-	if !angled && !next && r.org.Mount != nil {
-		dir := path.Dir(r.org.Path)
-		mounts = append(mounts, r.org.Mount)
-		rels = append(rels, path.Join(dir, name))
-	}
-	for i := start; i < len(p.cfg.Search); i++ {
-		mounts = append(mounts, &p.cfg.Search[i])
-		rels = append(rels, name)
-	}
+	mounts, rels := p.searchList(r, name, angled, next, start)
 
 	for i, m := range mounts {
 		rel := path.Clean(rels[i])
@@ -239,6 +221,72 @@ func (p *Preprocessor) include(r *reader, name string, angled bool, at Site, nex
 	} else {
 		p.note(at, "searched %d directories; run `vcc env` to see the resolved list", len(p.cfg.Search))
 	}
+}
+
+// searchList is where a header of this name would be looked for, in order:
+// the including file's own directory for a quoted include, then the search
+// list from start.
+//
+// Apart from include() because __has_include asks the same question and must
+// get the same answer. A rule that decided where to look twice would answer
+// the question differently from the directive that acts on it, which is the
+// one thing __has_include may not do.
+func (p *Preprocessor) searchList(r *reader, name string, angled, next bool, start int) ([]*Mount, []string) {
+	var mounts []*Mount
+	var rels []string
+	if !angled && !next && r.org.Mount != nil {
+		dir := path.Dir(r.org.Path)
+		mounts = append(mounts, r.org.Mount)
+		rels = append(rels, path.Join(dir, name))
+	}
+	for i := start; i < len(p.cfg.Search); i++ {
+		mounts = append(mounts, &p.cfg.Search[i])
+		rels = append(rels, name)
+	}
+	return mounts, rels
+}
+
+// searchStart is the index #include_next resumes the list at: one past the
+// entry the including file was found in. An ordinary include starts at zero,
+// and so does one from a file that has no position in the list.
+func (p *Preprocessor) searchStart(r *reader, next bool) int {
+	if !next {
+		return 0
+	}
+	for i := range p.cfg.Search {
+		if r.org.Mount == &p.cfg.Search[i] {
+			return i + 1
+		}
+	}
+	return 0
+}
+
+// headerExists reports whether an #include of this name would find a file.
+//
+// It stats rather than opens: the header is not being read, so nothing is
+// scanned, nothing is cached, and nothing joins the dependency list. A
+// header a program asked about and did not include is not a file the build
+// depends on.
+func (p *Preprocessor) headerExists(r *reader, name string, angled, next bool) bool {
+	if path.IsAbs(name) {
+		return false
+	}
+	mounts, rels := p.searchList(r, name, angled, next, p.searchStart(r, next))
+	for i, m := range mounts {
+		rel := path.Clean(rels[i])
+		if strings.HasPrefix(rel, "..") {
+			continue
+		}
+		// Already read this translation unit: it exists, whatever the
+		// filesystem says now.
+		if _, ok := p.files[path.Join(m.Name, rel)]; ok {
+			return true
+		}
+		if _, err := fs.Stat(m.FS, rel); err == nil {
+			return true
+		}
+	}
+	return false
 }
 
 // open reads a file at most once per translation unit. Scanning

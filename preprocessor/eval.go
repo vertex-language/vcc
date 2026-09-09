@@ -44,13 +44,18 @@ type evaluator struct {
 // (Darwin's pthread.h tests a function-like macro that expands to a
 // defined() chain), and vcc follows, under a named warning so the
 // nonportability stays visible — once per system header, like any other.
+// __has_include is resolved next and for the same reason: its operand is a
+// header-name, which is not an expression and must not be expanded. See
+// hasinclude.go.
+//
 // Only then does every remaining identifier become 0.
-func (p *Preprocessor) Eval(line []Token, at Site) bool {
+func (p *Preprocessor) Eval(r *reader, line []Token, at Site) bool {
 	if len(line) == 0 {
 		p.errorf(at, "#if with no expression")
 		return false
 	}
 	line = p.resolveDefined(line, at)
+	line = p.resolveHasInclude(r, line, at)
 	line = p.expandClosed(line)
 	line = p.resolveExpandedDefined(line, at)
 	line = p.zeroIdents(line)
@@ -92,9 +97,15 @@ func (p *Preprocessor) resolveDefined(line []Token, at Site) []Token {
 			}
 		}
 		n := 0
-		if p.macros.Defined(name) {
+		switch {
+		case p.macros.Defined(name):
 			n = 1
 			p.macros.Lookup(name).Used = true
+		// An operator this preprocessor answers for itself is defined, and
+		// asking is how a portable header finds out whether it may use it.
+		// See hasinclude.go.
+		case builtinPPMacro(name):
+			n = 1
 		}
 		out = append(out, p.number(t, n))
 		i = j

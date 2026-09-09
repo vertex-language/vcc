@@ -1,0 +1,1 @@
+#define PRESENT_H_WAS_READ 1
