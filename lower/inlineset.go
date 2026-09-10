@@ -46,7 +46,14 @@ import (
 // links, so every program that includes <windows.h> would fail to link over
 // a function it never called.
 //
-// Both kinds go in one closure because they reach each other: a static
+// The third kind is `extern inline` carrying gnu_inline, which is gcc 89's
+// inline and means the opposite of C99's: no external definition. Darwin's
+// <sys/cdefs.h> spells __header_inline that way for a compiler that says
+// __GNUC_STDC_INLINE__, so every one of those a header defines and nobody
+// calls would otherwise be emitted -- <objc/objc.h> alone has four, each
+// dragging its own references into every object that included it.
+//
+// All three go in one closure because they reach each other: a static
 // function called only from an inline definition is emitted exactly when
 // that definition is, and neither answer can be given without the other.
 
@@ -71,7 +78,13 @@ func (u *unit) planUsed() useSet {
 			continue
 		}
 		name := u.name(fd.Name)
-		if sto, _ := specStorage(fd.Specs); sto == staticStorage || u.isInlineDefinition(name, fd) {
+		sto, _ := specStorage(fd.Specs)
+		// The three kinds whose emission depends on being used: a static
+		// function, a C99 inline definition under the Microsoft ABI, and an
+		// `extern inline` carrying gnu_inline. See decl.go's notEmitted,
+		// which is where the answer is given; this is the walk that decides
+		// which names it is asked about.
+		if sto == staticStorage || u.isInlineDefinition(name, fd) || u.isGNUInline(fd) {
 			bodies[name] = fd
 		}
 	}

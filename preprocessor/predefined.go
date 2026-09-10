@@ -69,6 +69,22 @@ func (p *Preprocessor) installPredefines() {
 		{"__GNUC__", "4"},
 		{"__GNUC_MINOR__", "2"},
 		{"__GNUC_PATCHLEVEL__", "1"},
+
+		// And says which `inline` it has, because saying __GNUC__ without
+		// this one asks for the other. Darwin's <sys/cdefs.h> spells
+		// __header_inline as plain `inline` for a compiler that sets this,
+		// and as `extern __inline` -- gcc 89's, meaning "inline definition
+		// only" -- for a compiler that does not. vcc's inline is C99's, in
+		// which `extern inline` means the opposite: it *does* provide an
+		// external definition. So without this every unused inline in a
+		// system header came out as a weak definition in every object that
+		// included it, dragging its own undefined references along --
+		// <objc/objc.h> alone brought four.
+		//
+		// It is a fact rather than a claim: plain `inline` here provides no
+		// external definition and `extern inline` does, which is what the
+		// macro says and what the standard requires.
+		{"__GNUC_STDC_INLINE__", "1"},
 	} {
 		p.definePlain(d[0], d[1])
 	}

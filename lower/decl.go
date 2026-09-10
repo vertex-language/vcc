@@ -134,6 +134,23 @@ func (u *unit) notEmitted(name string, def *ast.FuncDecl) bool {
 	if sto, _ := specStorage(def.Specs); sto == staticStorage {
 		return !u.usedDefs()[name]
 	}
+	// `extern inline` carrying gnu_inline is gcc 89's inline, which means
+	// the opposite of C99's: the definition is an inline definition and
+	// provides no external one. Darwin's <sys/cdefs.h> spells
+	// __header_inline that way for a compiler that says
+	// __GNUC_STDC_INLINE__ -- the attribute is how a header asks for the
+	// older meaning back from a compiler whose plain `inline` is C99's.
+	//
+	// Emitted when this unit uses it and dropped otherwise, which is the
+	// rule the Microsoft ABI already takes below and for the same reason:
+	// gcc's own answer is to inline the body instead, and a compiler with
+	// no inliner that emitted nothing would leave the call unresolved.
+	// Dropping the unused ones is the whole benefit -- <objc/objc.h> alone
+	// defines four nobody calls, and each dragged its own references into
+	// every object that included it.
+	if u.isGNUInline(def) {
+		return !u.usedDefs()[name]
+	}
 	if !u.isInlineDefinition(name, def) {
 		return false
 	}
@@ -143,6 +160,29 @@ func (u *unit) notEmitted(name string, def *ast.FuncDecl) bool {
 	u.warnf(def, "inline definition of %s provides no external definition (§6.7.4p7); "+
 		"add extern to one declaration if this unit should emit it", name)
 	return true
+}
+
+// isGNUInline reports whether a definition is `extern inline` with the
+// gnu_inline attribute, which is gcc 89's inline rather than C99's.
+func (u *unit) isGNUInline(def *ast.FuncDecl) bool {
+	if !specHas(def.Specs, token.INLINE) {
+		return false
+	}
+	if sto, _ := specStorage(def.Specs); sto != externStorage {
+		return false
+	}
+	for _, sp := range def.Specs {
+		spec, ok := sp.(*ast.AttrSpec)
+		if !ok {
+			continue
+		}
+		for _, a := range spec.Attrs {
+			if a.Name != nil && attrBaseName(u.name(a.Name)) == "gnu_inline" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // usedDefs is the closure, computed once per unit.
