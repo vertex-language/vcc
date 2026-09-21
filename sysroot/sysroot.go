@@ -123,6 +123,11 @@ func ResolveWith(h Host, target string, hosted bool) (entries []Entry, notes []s
 // resolve is Resolve with the impurities injected: the host to probe
 // and the OS to probe it as. Tests call this; nothing else should.
 func resolve(h Host, goos, target string, hosted bool) (entries []Entry, notes []string) {
+	if strings.HasSuffix(target, "-android") {
+		// Bionic's headers are the NDK's, which nothing here assumes is
+		// installed: the builtins, and whatever -I names.
+		return []Entry{builtinEntry()}, []string{"Android system headers come from the NDK; name its sysroot with -I"}
+	}
 	if !hosted {
 		// --freestanding is step 1 alone: the headers ISO requires of
 		// a freestanding implementation are exactly the ones vcc

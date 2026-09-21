@@ -43,6 +43,7 @@ import (
 // clang reports.
 var osIdent = map[string][][2]string{
 	"linux":   {{"__linux__", "1"}, {"__gnu_linux__", "1"}, {"__unix__", "1"}, {"__ELF__", "1"}},
+	"android": {{"__ANDROID__", "1"}, {"__linux__", "1"}, {"__unix__", "1"}, {"__ELF__", "1"}},
 	"macos":   {{"__APPLE__", "1"}, {"__MACH__", "1"}, {"__APPLE_CC__", "6000"}},
 	"elf":     {{"__ELF__", "1"}},
 	"windows": {{"_WIN32", "1"}},
@@ -87,6 +88,10 @@ func (t Target) Triple() preprocessor.Triple {
 	case "linux":
 		tr.Vendor = "unknown"
 		tr.Environment = "gnu"
+	case "android":
+		tr.OS = "linux"
+		tr.Vendor = "unknown"
+		tr.Environment = "android"
 	case "windows":
 		tr.Vendor = "pc"
 		tr.Environment = "msvc"

@@ -165,6 +165,11 @@ var targets = map[string]Target{
 		model: lp64ARM(), ldbl: ldblQuad, wint: "unsigned int",
 		arch: ArchARM64, format: FormatELF, irt: ir.AArch64Linux,
 	},
+	// Bionic: the aarch64 Linux type model, long double included.
+	"aarch64-android": {
+		model: lp64ARM(), ldbl: ldblQuad, wint: "unsigned int",
+		arch: ArchARM64, format: FormatELF, irt: ir.AArch64Android,
+	},
 	"aarch64-macos": {
 		model: darwinARM64(), ldbl: ldblDouble, wint: "int",
 		arch: ArchARM64, format: FormatMachO, irt: ir.AArch64MacOS,
